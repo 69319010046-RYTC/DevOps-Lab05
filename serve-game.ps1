@@ -34,6 +34,7 @@ $contentTypes = @{
     ".css"  = "text/css; charset=utf-8"
     ".js"   = "text/javascript; charset=utf-8"
     ".jpeg" = "image/jpeg"
+    ".png"  = "image/png"
 }
 
 try {

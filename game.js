@@ -4,6 +4,8 @@ const image = document.getElementById("preview");
 const referenceImage = document.getElementById("reference-image");
 const desktopImageSelect = document.getElementById("desktop-image");
 const mobileImageSelect = document.getElementById("mobile-image");
+const copyShareLinkButton = document.getElementById("copy-share-link");
+const shareStatus = document.getElementById("share-status");
 const board = document.getElementById("board");
 const guides = document.getElementById("guides");
 const tray = document.getElementById("tray");
@@ -51,9 +53,23 @@ let youtubePlayerPromise = null;
 let youtubePlayer = null;
 let placementAudioContext = null;
 let selectedTrackId = "";
-let activeImageSource = image.getAttribute("src");
+const availableImages = new Set(["car.jpeg", "gojo.png", "anya.png"]);
 
 const mobileLayoutQuery = window.matchMedia("(max-width: 860px)");
+const initialUrl = new URL(window.location.href);
+const sharedDesktopImage = initialUrl.searchParams.get("pc");
+const sharedMobileImage = initialUrl.searchParams.get("mobile");
+if (availableImages.has(sharedDesktopImage)) {
+  desktopImageSelect.value = sharedDesktopImage;
+}
+if (availableImages.has(sharedMobileImage)) {
+  mobileImageSelect.value = sharedMobileImage;
+}
+let activeImageSource = mobileLayoutQuery.matches ? mobileImageSelect.value : desktopImageSelect.value;
+image.src = activeImageSource;
+referenceImage.src = activeImageSource;
+referenceImage.alt = getImageDescription(activeImageSource);
+
 musicSettings.open = !mobileLayoutQuery.matches;
 mobileLayoutQuery.addEventListener("change", (event) => {
   musicSettings.open = !event.matches;
@@ -75,6 +91,7 @@ function getImageDescription(source) {
 
 function activateSelectedImage() {
   const source = selectedImageSource();
+  updateShareUrl();
   if (source === activeImageSource) {
     return;
   }
@@ -84,6 +101,35 @@ function activateSelectedImage() {
   referenceImage.alt = getImageDescription(source);
   image.src = source;
   setStatus("กำลังโหลดรูปภาพ...");
+}
+
+function updateShareUrl() {
+  if (!["http:", "https:"].includes(window.location.protocol)) {
+    return;
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.set("pc", desktopImageSelect.value);
+  url.searchParams.set("mobile", mobileImageSelect.value);
+  window.history.replaceState(null, "", url);
+}
+
+async function copyShareLink() {
+  const url = new URL(window.location.href);
+  url.searchParams.set("pc", desktopImageSelect.value);
+  url.searchParams.set("mobile", mobileImageSelect.value);
+  const isLocalAddress = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+  if (window.location.protocol === "file:" || isLocalAddress) {
+    shareStatus.textContent = "ลิงก์ในเครื่องใช้ได้เฉพาะเครื่องนี้ ต้องนำเกมขึ้นเว็บโฮสติ้งก่อนจึงแชร์ให้คนอื่นได้";
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(url.href);
+    shareStatus.textContent = "คัดลอกลิงก์พร้อมรูปที่เลือกแล้ว";
+  } catch (error) {
+    console.error("Unable to copy the puzzle share link.", error);
+    shareStatus.textContent = "คัดลอกอัตโนมัติไม่ได้ กรุณาคัดลอกลิงก์จากแถบที่อยู่";
+  }
 }
 
 function updateThemeFromImage() {
@@ -531,10 +577,18 @@ function startTimer(initialSeconds = 0) {
   }, 1000);
 }
 
+function updateDesktopBoardWidth() {
+  const imageRatio = image.naturalWidth / image.naturalHeight;
+  const maxHeight = Math.max(260, window.innerHeight * 0.68);
+  const width = Math.min(520, maxHeight * imageRatio);
+  board.style.setProperty("--desktop-board-width", `${width}px`);
+}
+
 function startGame({ preserveState = false } = {}) {
   if (!gameReady) {
     return;
   }
+  updateDesktopBoardWidth();
   const placedIds = preserveState
     ? new Set(pieces.filter((piece) => piece.placed).map((piece) => piece.id))
     : new Set();
@@ -627,6 +681,7 @@ function refreshGameAfterResize() {
   if (!gameReady || activeDrag) {
     return;
   }
+  updateDesktopBoardWidth();
   const { width, height } = board.getBoundingClientRect();
   if (Math.abs(width - gameBoardWidth) > 1 || Math.abs(height - gameBoardHeight) > 1) {
     startGame({ preserveState: pieces.length > 0 });
@@ -731,6 +786,7 @@ restartButton.addEventListener("click", startGame);
 difficulty.addEventListener("change", startGame);
 desktopImageSelect.addEventListener("change", activateSelectedImage);
 mobileImageSelect.addEventListener("change", activateSelectedImage);
+copyShareLinkButton.addEventListener("click", copyShareLink);
 musicTrackSelect.addEventListener("change", () => {
   if (musicTrackSelect.value) {
     void playTrack(musicTrackSelect.value);

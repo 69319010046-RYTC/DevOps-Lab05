@@ -45,6 +45,7 @@
         <aside class="tray-panel" aria-label="ถาดชิ้นส่วน">
           <figure class="reference-card">
             <figcaption>รูปตัวอย่าง</figcaption>
+            <img id="reference-image" class="reference-image" src="car.jpeg" alt="ภาพรถยนต์ต้นฉบับสำหรับใช้ดูเป็นตัวอย่าง" draggable="false">
             <label class="image-choice desktop-image-choice" for="desktop-image">
               <span>รูปสำหรับ PC</span>
               <select id="desktop-image" aria-label="เลือกรูปสำหรับ PC">
@@ -61,7 +62,8 @@
                 <option value="anya.png">อาเนีย</option>
               </select>
             </label>
-            <img id="reference-image" class="reference-image" src="car.jpeg" alt="ภาพรถยนต์ต้นฉบับสำหรับใช้ดูเป็นตัวอย่าง" draggable="false">
+            <button id="copy-share-link" class="share-button" type="button">คัดลอกลิงก์รูปนี้</button>
+            <p id="share-status" class="share-status" role="status" aria-live="polite"></p>
           </figure>
           <details class="music-settings">
             <summary>เพลงและเสียง</summary>
