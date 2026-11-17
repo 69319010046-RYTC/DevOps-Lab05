@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>เกมต่อภาพรถยนต์ | Jigsaw Puzzle</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="game.js" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">JIGSAW PUZZLE</p>
+          <h1>เกมต่อภาพรถยนต์</h1>
+          <p class="intro">ลากชิ้นส่วนจากถาดมาวางให้ตรงตำแหน่งบนกระดาน</p>
+        </div>
+        <div class="game-controls">
+          <label for="difficulty">ระดับความยาก</label>
+          <select id="difficulty" aria-label="เลือกระดับความยาก">
+            <option value="easy">ง่าย · 12 ชิ้น</option>
+            <option value="normal" selected>ปกติ · 20 ชิ้น</option>
+            <option value="hard">ยาก · 36 ชิ้น</option>
+          </select>
+          <button id="restart" class="restart-button" type="button">เริ่มเกมใหม่</button>
+        </div>
+      </header>
+
+      <section class="game-info" aria-label="สถานะเกม">
+        <p id="status" class="status" role="status" aria-live="polite">กำลังเตรียมเกม...</p>
+        <div class="stats">
+          <span>วางแล้ว <strong id="progress">0 / 20</strong></span>
+          <span>เวลา <strong id="timer">00:00</strong></span>
+        </div>
+      </section>
+
+      <section class="game-stage" aria-label="พื้นที่เล่นเกม">
+        <div class="board-column">
+          <div id="board" class="board" aria-label="กระดานต่อภาพ">
+            <img id="preview" class="preview" src="car.jpeg" alt="" draggable="false">
+            <div id="guides" class="guides" aria-hidden="true"></div>
+          </div>
+          <figure class="reference-card">
+            <figcaption>รูปตัวอย่าง</figcaption>
+            <img class="reference-image" src="car.jpeg" alt="ภาพรถยนต์ต้นฉบับสำหรับใช้ดูเป็นตัวอย่าง" draggable="false">
+          </figure>
+        </div>
+        <aside class="tray-panel" aria-label="ถาดชิ้นส่วน">
+          <section class="music-panel" aria-label="เพลงประกอบ">
+            <h2>เพลงประกอบ</h2>
+            <div class="music-select-row">
+              <label class="visually-hidden" for="music-track">เลือกเพลง</label>
+              <select id="music-track" aria-label="เลือกเพลง">
+                <option value="">เลือกเพลง หรือกดสุ่ม</option>
+                <option value="8hU-ZOgsbCM">canfull / 平葵</option>
+                <option value="bIiIrXM7BUA">BANG BANG BANG - Chainsaw Man Song</option>
+                <option value="r1Eb1qnqLzA">ขึ้นใจ (3am call)</option>
+              </select>
+              <button id="shuffle-music" class="music-button" type="button">สุ่มเพลง</button>
+            </div>
+            <div class="music-actions">
+              <button id="toggle-music" class="music-button play-music-button" type="button" disabled>เลือกเพลงก่อน</button>
+              <a id="open-youtube" class="youtube-link" href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" hidden>
+                เปิดใน YouTube
+              </a>
+            </div>
+            <label class="volume-control" for="music-volume">
+              <span>เสียงเพลง <output id="music-volume-value" for="music-volume">30%</output></span>
+              <input id="music-volume" type="range" min="0" max="100" value="30">
+            </label>
+            <div id="youtube-player" class="youtube-player" aria-label="เครื่องเล่นเพลง YouTube" hidden>
+              <span>เลือกเพลงหรือกดสุ่มเพลงเพื่อเริ่มเล่น</span>
+            </div>
+            <p id="music-status" class="music-status" role="status" aria-live="polite">ยังไม่ได้เลือกเพลง</p>
+            <label class="volume-control effect-volume" for="effect-volume">
+              <span>เสียงตอนวาง <output id="effect-volume-value" for="effect-volume">40%</output></span>
+              <input id="effect-volume" type="range" min="0" max="100" value="40">
+            </label>
+          </section>
+          <div class="tray-heading">
+            <h2>ชิ้นส่วน</h2>
+            <span id="tray-count">20 ชิ้น</span>
+          </div>
+          <div id="tray" class="tray"></div>
+          <p class="tray-hint">คลิกค้างแล้วลากชิ้นส่วนไปยังตำแหน่งที่ถูกต้อง</p>
+        </aside>
+      </section>
+      <footer class="page-footer">เล่นบนคอมพิวเตอร์ด้วยเมาส์ · วางชิ้นส่วนใกล้ตำแหน่งเพื่อให้เข้าที่</footer>
+    </main>
+  </body>
+</html>
