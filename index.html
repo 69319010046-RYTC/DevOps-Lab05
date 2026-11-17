@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f7fb">
-    <title>เกมต่อภาพรถยนต์ | Jigsaw Puzzle</title>
+    <title>เกมต่อภาพ | Jigsaw Puzzle</title>
     <link rel="stylesheet" href="styles.css">
     <script src="game.js" defer></script>
   </head>
@@ -13,7 +13,7 @@
       <header class="page-header">
         <div>
           <p class="eyebrow">JIGSAW PUZZLE</p>
-          <h1>เกมต่อภาพรถยนต์</h1>
+          <h1>เกมต่อภาพ</h1>
           <p class="intro">ลากชิ้นส่วนจากถาดมาวางให้ตรงตำแหน่งบนกระดาน</p>
         </div>
         <div class="game-controls">
@@ -41,12 +41,28 @@
             <img id="preview" class="preview" src="car.jpeg" alt="" draggable="false">
             <div id="guides" class="guides" aria-hidden="true"></div>
           </div>
-          <figure class="reference-card">
-            <figcaption>รูปตัวอย่าง</figcaption>
-            <img class="reference-image" src="car.jpeg" alt="ภาพรถยนต์ต้นฉบับสำหรับใช้ดูเป็นตัวอย่าง" draggable="false">
-          </figure>
         </div>
         <aside class="tray-panel" aria-label="ถาดชิ้นส่วน">
+          <figure class="reference-card">
+            <figcaption>รูปตัวอย่าง</figcaption>
+            <label class="image-choice desktop-image-choice" for="desktop-image">
+              <span>รูปสำหรับ PC</span>
+              <select id="desktop-image" aria-label="เลือกรูปสำหรับ PC">
+                <option value="car.jpeg">รถยนต์</option>
+                <option value="gojo.png">โกโจ</option>
+                <option value="anya.png">อาเนีย</option>
+              </select>
+            </label>
+            <label class="image-choice mobile-image-choice" for="mobile-image">
+              <span>รูปสำหรับมือถือ</span>
+              <select id="mobile-image" aria-label="เลือกรูปสำหรับมือถือ">
+                <option value="car.jpeg">รถยนต์</option>
+                <option value="gojo.png">โกโจ</option>
+                <option value="anya.png">อาเนีย</option>
+              </select>
+            </label>
+            <img id="reference-image" class="reference-image" src="car.jpeg" alt="ภาพรถยนต์ต้นฉบับสำหรับใช้ดูเป็นตัวอย่าง" draggable="false">
+          </figure>
           <details class="music-settings">
             <summary>เพลงและเสียง</summary>
             <section class="music-panel" aria-label="เพลงประกอบ">

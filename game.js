@@ -1,6 +1,9 @@
 "use strict";
 
 const image = document.getElementById("preview");
+const referenceImage = document.getElementById("reference-image");
+const desktopImageSelect = document.getElementById("desktop-image");
+const mobileImageSelect = document.getElementById("mobile-image");
 const board = document.getElementById("board");
 const guides = document.getElementById("guides");
 const tray = document.getElementById("tray");
@@ -48,12 +51,100 @@ let youtubePlayerPromise = null;
 let youtubePlayer = null;
 let placementAudioContext = null;
 let selectedTrackId = "";
+let activeImageSource = image.getAttribute("src");
 
 const mobileLayoutQuery = window.matchMedia("(max-width: 860px)");
 musicSettings.open = !mobileLayoutQuery.matches;
 mobileLayoutQuery.addEventListener("change", (event) => {
   musicSettings.open = !event.matches;
+  activateSelectedImage();
 });
+
+function selectedImageSource() {
+  return mobileLayoutQuery.matches ? mobileImageSelect.value : desktopImageSelect.value;
+}
+
+function getImageDescription(source) {
+  const descriptions = {
+    "car.jpeg": "ภาพรถยนต์ต้นฉบับสำหรับใช้ดูเป็นตัวอย่าง",
+    "gojo.png": "ภาพโกโจสำหรับใช้ดูเป็นตัวอย่าง",
+    "anya.png": "ภาพอาเนียสำหรับใช้ดูเป็นตัวอย่าง",
+  };
+  return descriptions[source] ?? "ภาพตัวอย่างสำหรับเกมต่อภาพ";
+}
+
+function activateSelectedImage() {
+  const source = selectedImageSource();
+  if (source === activeImageSource) {
+    return;
+  }
+  activeImageSource = source;
+  gameReady = false;
+  referenceImage.src = source;
+  referenceImage.alt = getImageDescription(source);
+  image.src = source;
+  setStatus("กำลังโหลดรูปภาพ...");
+}
+
+function updateThemeFromImage() {
+  try {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) {
+      throw new Error("ไม่สามารถอ่านสีจากรูปภาพได้");
+    }
+
+    canvas.width = 32;
+    canvas.height = 32;
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    let hueX = 0;
+    let hueY = 0;
+    let totalWeight = 0;
+
+    for (let index = 0; index < pixels.length; index += 4) {
+      const red = pixels[index] / 255;
+      const green = pixels[index + 1] / 255;
+      const blue = pixels[index + 2] / 255;
+      const maximum = Math.max(red, green, blue);
+      const minimum = Math.min(red, green, blue);
+      const delta = maximum - minimum;
+      const lightness = (maximum + minimum) / 2;
+      if (delta < 0.12 || lightness < 0.16 || lightness > 0.88) {
+        continue;
+      }
+
+      let hue;
+      if (maximum === red) {
+        hue = ((green - blue) / delta) % 6;
+      } else if (maximum === green) {
+        hue = (blue - red) / delta + 2;
+      } else {
+        hue = (red - green) / delta + 4;
+      }
+      hue = ((hue * 60) + 360) % 360;
+      const weight = delta * (pixels[index + 3] / 255);
+      const radians = (hue * Math.PI) / 180;
+      hueX += Math.cos(radians) * weight;
+      hueY += Math.sin(radians) * weight;
+      totalWeight += weight;
+    }
+
+    const hue = totalWeight > 0
+      ? (Math.atan2(hueY, hueX) * 180 / Math.PI + 360) % 360
+      : 220;
+    const root = document.documentElement;
+    root.style.setProperty("--accent", `hsl(${hue} 62% 38%)`);
+    root.style.setProperty("--accent-hover", `hsl(${hue} 66% 32%)`);
+    root.style.setProperty("--focus-ring", `hsl(${hue} 72% 82%)`);
+    root.style.setProperty("--page-background", `hsl(${hue} 28% 97%)`);
+    root.style.setProperty("--line", `hsl(${hue} 18% 88%)`);
+    root.style.setProperty("--surface-muted", `hsl(${hue} 28% 98%)`);
+    document.querySelector('meta[name="theme-color"]').content = `hsl(${hue} 28% 97%)`;
+  } catch (error) {
+    console.error("Unable to match the page colors to the selected puzzle image.", error);
+  }
+}
 
 function setStatus(message, state = "") {
   statusText.textContent = message;
@@ -638,6 +729,8 @@ function onPointerUp(event) {
 
 restartButton.addEventListener("click", startGame);
 difficulty.addEventListener("change", startGame);
+desktopImageSelect.addEventListener("change", activateSelectedImage);
+mobileImageSelect.addEventListener("change", activateSelectedImage);
 musicTrackSelect.addEventListener("change", () => {
   if (musicTrackSelect.value) {
     void playTrack(musicTrackSelect.value);
@@ -666,22 +759,24 @@ if (typeof ResizeObserver === "function") {
   boardResizeObserver.observe(board);
 }
 
-image.addEventListener("load", () => {
+function handlePuzzleImageLoad() {
+  if (image.getAttribute("src") !== activeImageSource) {
+    return;
+  }
   gameReady = true;
   board.style.aspectRatio = `${image.naturalWidth} / ${image.naturalHeight}`;
+  updateThemeFromImage();
   startGame();
-}, { once: true });
+}
 
+image.addEventListener("load", handlePuzzleImageLoad);
 image.addEventListener("error", () => {
-  restartButton.disabled = true;
-  difficulty.disabled = true;
-  setStatus("ไม่สามารถโหลด car.jpeg ได้ กรุณาตรวจสอบว่าไฟล์อยู่ในโฟลเดอร์เดียวกับหน้าเกม", "error");
-}, { once: true });
+  gameReady = false;
+  setStatus(`ไม่สามารถโหลด ${activeImageSource} ได้ กรุณาตรวจสอบว่าไฟล์รูปอยู่ในโฟลเดอร์เดียวกับหน้าเกม`, "error");
+});
 
 if (image.complete && image.naturalWidth > 0) {
-  gameReady = true;
-  board.style.aspectRatio = `${image.naturalWidth} / ${image.naturalHeight}`;
-  startGame();
+  handlePuzzleImageLoad();
 }
 
 updateMusicVolume();
