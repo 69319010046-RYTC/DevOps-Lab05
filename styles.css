@@ -15,7 +15,7 @@
 }
 
 body {
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
   margin: 0;
 }
@@ -243,6 +243,14 @@ select:focus-visible,
   background: #fff;
 }
 
+.music-settings {
+  display: contents;
+}
+
+.music-settings > summary {
+  display: none;
+}
+
 .music-panel {
   flex: 0 0 auto;
   padding-bottom: 12px;
@@ -446,6 +454,7 @@ select:focus-visible,
   cursor: grab;
   touch-action: none;
   user-select: none;
+  -webkit-user-drag: none;
 }
 
 .piece:active {
@@ -478,52 +487,257 @@ select:focus-visible,
 @media (max-width: 860px) {
   .page {
     width: min(720px, calc(100% - 32px));
-    padding-top: 24px;
+    padding: 18px 0 24px;
   }
 
   .page-header {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+    gap: 16px;
+    margin-bottom: 16px;
   }
 
-  .game-stage {
-    grid-template-columns: minmax(0, 1fr);
+  .page-header > div:first-child {
+    min-width: 0;
   }
 
-  .board {
-    max-width: 700px;
-    justify-self: center;
+  .eyebrow {
+    margin-bottom: 4px;
   }
 
-  .tray {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .tray-slot {
-    height: 72px;
-  }
-
-  .piece {
-    max-height: 64px;
-  }
-}
-
-@media (max-width: 520px) {
-  .page {
-    width: calc(100% - 24px);
+  h1 {
+    font-size: clamp(24px, 4vw, 32px);
   }
 
   .game-controls {
-    width: 100%;
     flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .game-controls label {
     width: 100%;
+    text-align: right;
+  }
+
+  .game-controls select,
+  .restart-button {
+    min-height: 44px;
+  }
+
+  .game-stage {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .board-column {
+    display: contents;
+  }
+
+  .board {
+    position: sticky;
+    z-index: 5;
+    top: 8px;
+    grid-row: 1;
+    max-width: 700px;
+    justify-self: center;
+  }
+
+  .reference-card {
+    grid-row: 3;
+    margin-top: 10px;
+    padding: 10px;
+  }
+
+  .reference-image {
+    width: min(100%, 300px);
+  }
+
+  .tray-panel {
+    grid-row: 2;
+    overflow: visible;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .music-settings {
+    display: block;
+    flex: 0 0 auto;
+  }
+
+  .music-settings > summary {
+    display: list-item;
+    min-height: 44px;
+    padding: 12px 4px;
+    color: #344054;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .music-settings[open] {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .music-panel {
+    padding: 0 2px;
+    border-bottom: 0;
+  }
+
+  .music-panel h2 {
+    display: none;
+  }
+
+  .music-select-row select,
+  .music-button {
+    min-height: 44px;
+  }
+
+  .music-status {
+    min-height: 0;
+  }
+
+  .tray-heading {
+    padding: 0 2px;
+  }
+
+  .tray {
+    flex: initial;
+    min-height: 0;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .tray-slot {
+    height: clamp(68px, 16vw, 90px);
+    border-radius: 10px;
+  }
+
+  .piece {
+    max-height: 78px;
+  }
+
+  .tray-hint {
+    padding: 0 2px;
+    line-height: 1.6;
+  }
+
+  .page-footer {
+    margin-top: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    width: calc(100% - 24px);
+    padding-top: 14px;
+  }
+
+  .page-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .page-header > div:first-child {
+    text-align: center;
+  }
+
+  .intro {
+    font-size: 14px;
+  }
+
+  .game-controls {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .game-controls label {
+    grid-column: 1 / -1;
+    text-align: left;
   }
 
   .game-controls select {
-    flex: 1;
+    width: 100%;
+    min-width: 0;
+    padding-right: 24px;
+  }
+
+  .game-info {
+    min-height: 0;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+  }
+
+  .status {
+    font-size: 13px;
+  }
+
+  .stats {
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .game-stage {
+    gap: 12px;
+  }
+
+  .board-column {
+    display: contents;
+  }
+
+  .board {
+    position: sticky;
+    z-index: 5;
+    top: 8px;
+    grid-row: 1;
+    border-radius: 9px;
+  }
+
+  .tray-panel {
+    grid-row: 2;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .reference-card {
+    grid-row: 3;
+    margin-top: 0;
+  }
+
+  .youtube-player {
+    width: min(100%, 360px);
+  }
+
+  .tray {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .tray-slot {
+    height: clamp(70px, 19vw, 88px);
+  }
+
+  .piece {
+    max-width: calc(100% - 6px);
+    max-height: 78px;
+  }
+
+  .tray-hint,
+  .page-footer {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .page {
+    width: calc(100% - 16px);
   }
 
   .game-info {
@@ -536,16 +750,132 @@ select:focus-visible,
     justify-content: space-between;
   }
 
-  .tray-panel {
-    padding: 10px;
+  .music-select-row {
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .youtube-player {
-    width: min(100%, 360px);
+  .music-select-row select {
+    width: 100%;
+  }
+}
+
+@media (max-width: 860px) and (orientation: landscape) {
+  .page {
+    width: calc(100% - 28px);
+    padding-top: 10px;
+  }
+
+  .page-header {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .page-header > div:first-child {
+    text-align: left;
+  }
+
+  .eyebrow,
+  .intro {
+    display: none;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  .game-controls {
+    width: auto;
+    grid-template-columns: auto auto;
+  }
+
+  .game-controls label {
+    display: none;
+  }
+
+  .game-info {
+    flex-direction: row;
+  }
+
+  .board-column {
+    display: grid;
+    position: sticky;
+    top: 8px;
+    grid-template-columns: minmax(0, 1fr) minmax(140px, 0.35fr);
+    align-items: center;
+    align-self: start;
+    gap: 10px;
+  }
+
+  .game-stage {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .board {
+    position: relative;
+    top: auto;
+    width: min(100%, calc((100dvh - 190px) * 1.835));
+    justify-self: center;
+  }
+
+  .reference-card {
+    display: grid;
+    margin: 0;
+    padding: 6px;
   }
 
   .tray {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .music-settings[open] .music-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    column-gap: 12px;
+  }
+
+  .music-settings[open] .music-select-row,
+  .music-settings[open] .music-actions,
+  .music-settings[open] .music-status,
+  .music-settings[open] .effect-volume {
+    grid-column: 1 / -1;
+  }
+
+  .music-settings[open] .music-panel .volume-control {
+    margin-top: 6px;
+  }
+
+  .music-settings[open] .music-panel .youtube-player {
+    min-width: 0;
+    height: 110px;
+    margin-top: 6px;
+  }
+
+  .music-settings[open] .music-panel .youtube-player iframe {
+    height: 110px;
+  }
+}
+
+@media (max-width: 360px) {
+  .page-header {
+    gap: 8px;
+  }
+
+  h1 {
+    font-size: 23px;
+  }
+
+  .game-info {
+    align-items: flex-start;
+  }
+
+  .game-info .stats {
+    width: 100%;
+    justify-content: space-between;
   }
 }
 

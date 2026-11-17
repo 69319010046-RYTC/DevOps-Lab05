@@ -10,6 +10,7 @@ const statusText = document.getElementById("status");
 const progressText = document.getElementById("progress");
 const timerText = document.getElementById("timer");
 const trayCountText = document.getElementById("tray-count");
+const musicSettings = document.querySelector(".music-settings");
 const musicTrackSelect = document.getElementById("music-track");
 const shuffleMusicButton = document.getElementById("shuffle-music");
 const toggleMusicButton = document.getElementById("toggle-music");
@@ -39,11 +40,20 @@ let elapsedSeconds = 0;
 let timerInterval = null;
 let activeDrag = null;
 let gameReady = false;
+let gameBoardWidth = 0;
+let gameBoardHeight = 0;
+let resizeFrame = null;
 let youtubeApiPromise = null;
 let youtubePlayerPromise = null;
 let youtubePlayer = null;
 let placementAudioContext = null;
 let selectedTrackId = "";
+
+const mobileLayoutQuery = window.matchMedia("(max-width: 860px)");
+musicSettings.open = !mobileLayoutQuery.matches;
+mobileLayoutQuery.addEventListener("change", (event) => {
+  musicSettings.open = !event.matches;
+});
 
 function setStatus(message, state = "") {
   statusText.textContent = message;
@@ -420,9 +430,9 @@ function finishGame() {
   setStatus(`ต่อภาพสำเร็จ! ใช้เวลา ${formatTime(elapsedSeconds)}`, "won");
 }
 
-function startTimer() {
+function startTimer(initialSeconds = 0) {
   clearInterval(timerInterval);
-  elapsedSeconds = 0;
+  elapsedSeconds = initialSeconds;
   updateTimer();
   timerInterval = window.setInterval(() => {
     elapsedSeconds += 1;
@@ -430,10 +440,17 @@ function startTimer() {
   }, 1000);
 }
 
-function startGame() {
+function startGame({ preserveState = false } = {}) {
   if (!gameReady) {
     return;
   }
+  const placedIds = preserveState
+    ? new Set(pieces.filter((piece) => piece.placed).map((piece) => piece.id))
+    : new Set();
+  const remainingIds = preserveState
+    ? pieces.filter((piece) => !piece.placed).map((piece) => piece.id)
+    : [];
+  const previousElapsedSeconds = elapsedSeconds;
   clearInterval(timerInterval);
   activeDrag = null;
   placedCount = 0;
@@ -450,8 +467,6 @@ function startGame() {
   makeGuides(level.rows, level.columns);
   makeTraySlots(level.total);
   trayCountText.textContent = `${level.total} ชิ้น`;
-  progressText.textContent = `0 / ${level.total}`;
-  setStatus("ลากชิ้นส่วนไปวางบนกระดาน");
 
   pieces = [];
   for (let row = 0; row < level.rows; row += 1) {
@@ -468,19 +483,73 @@ function startGame() {
     }
   }
 
-  for (let index = pieces.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [pieces[index], pieces[swapIndex]] = [pieces[swapIndex], pieces[index]];
+  if (preserveState && remainingIds.length > 0) {
+    const remainingOrder = new Map(remainingIds.map((id, index) => [id, index]));
+    pieces.sort((first, second) => {
+      if (placedIds.has(first.id)) {
+        return placedIds.has(second.id) ? first.id - second.id : 1;
+      }
+      if (placedIds.has(second.id)) {
+        return -1;
+      }
+      return remainingOrder.get(first.id) - remainingOrder.get(second.id);
+    });
+  } else {
+    for (let index = pieces.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [pieces[index], pieces[swapIndex]] = [pieces[swapIndex], pieces[index]];
+    }
   }
 
   const slots = Array.from(tray.children);
+  let trayIndex = 0;
   pieces.forEach((piece, index) => {
     const canvas = makePieceCanvas(piece, boardWidth, boardHeight, tileWidth, tileHeight, tabSize);
     piece.canvas = canvas;
-    piece.placed = false;
-    slots[index].append(canvas);
+    piece.placed = placedIds.has(piece.id);
+    if (piece.placed) {
+      canvas.style.position = "absolute";
+      canvas.style.left = `${piece.column * tileWidth - tabSize}px`;
+      canvas.style.top = `${piece.row * tileHeight - tabSize}px`;
+      canvas.style.zIndex = "1";
+      canvas.style.maxWidth = "none";
+      canvas.style.maxHeight = "none";
+      board.append(canvas);
+      placedCount += 1;
+    } else {
+      slots[trayIndex].append(canvas);
+      trayIndex += 1;
+    }
   });
-  startTimer();
+  progressText.textContent = `${placedCount} / ${level.total}`;
+  gameBoardWidth = boardWidth;
+  gameBoardHeight = boardHeight;
+  if (placedCount === level.total) {
+    finishGame();
+  } else {
+    setStatus(preserveState && placedCount > 0 ? "ปรับกระดานตามหน้าจอแล้ว เล่นต่อได้เลย" : "ลากชิ้นส่วนไปวางบนกระดาน");
+    startTimer(preserveState ? previousElapsedSeconds : 0);
+  }
+}
+
+function refreshGameAfterResize() {
+  if (!gameReady || activeDrag) {
+    return;
+  }
+  const { width, height } = board.getBoundingClientRect();
+  if (Math.abs(width - gameBoardWidth) > 1 || Math.abs(height - gameBoardHeight) > 1) {
+    startGame({ preserveState: pieces.length > 0 });
+  }
+}
+
+function scheduleResizeRefresh() {
+  if (resizeFrame !== null) {
+    window.cancelAnimationFrame(resizeFrame);
+  }
+  resizeFrame = window.requestAnimationFrame(() => {
+    resizeFrame = null;
+    refreshGameAfterResize();
+  });
 }
 
 function onPointerDown(event) {
@@ -560,9 +629,11 @@ function onPointerUp(event) {
     } else {
       setStatus("ถูกต้อง! เลือกชิ้นส่วนถัดไป");
     }
+    scheduleResizeRefresh();
     return;
   }
   returnPieceToTray(canvas);
+  scheduleResizeRefresh();
 }
 
 restartButton.addEventListener("click", startGame);
@@ -588,6 +659,12 @@ document.addEventListener("pointerdown", onPointerDown);
 window.addEventListener("pointermove", onPointerMove);
 window.addEventListener("pointerup", onPointerUp);
 window.addEventListener("pointercancel", onPointerUp);
+window.addEventListener("orientationchange", scheduleResizeRefresh);
+window.addEventListener("resize", scheduleResizeRefresh);
+if (typeof ResizeObserver === "function") {
+  const boardResizeObserver = new ResizeObserver(scheduleResizeRefresh);
+  boardResizeObserver.observe(board);
+}
 
 image.addEventListener("load", () => {
   gameReady = true;
